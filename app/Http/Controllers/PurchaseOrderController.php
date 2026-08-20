@@ -2,71 +2,61 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\OdooService;
+use App\Services\OdooPgService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class PurchaseOrderController extends Controller
 {
-    protected OdooService $odoo;
+    protected OdooPgService $odooPg;
 
-    public function __construct(OdooService $odoo)
+    public function __construct(OdooPgService $odooPg)
     {
-        $this->odoo = $odoo;
+        $this->odooPg = $odooPg;
     }
 
     /**
-     * Halaman laporan: daftar Purchase Order dari Odoo.
+     * Halaman laporan: daftar Purchase Order langsung dari PostgreSQL Odoo 19.
      */
     public function index(Request $request)
     {
         $error = null;
         $orders = [];
+        $user = Auth::user();
 
-        // Filter opsional lewat query string, misal: ?status=purchase
+        // Filter status lewat query string, misal: ?status=purchase
         $status = $request->query('status');
-        $domain = $status ? [['state', '=', $status]] : [];
 
         try {
-            $orders = $this->odoo->searchRead(
-                model: 'purchase.order',
-                domain: $domain,
-                fields: [
-                    'name',            // Nomor PO, misal P00001
-                    'partner_id',      // Vendor/supplier
-                    'date_order',      // Tanggal order
-                    'amount_total',    // Total nilai
-                    'state',           // Status: draft, sent, purchase, done, cancel
-                    'user_id',         // Yang membuat/bertanggung jawab
-                ],
-                limit: 100,
+            $orders = $this->odooPg->getPurchaseOrders(
+                state: $status,
+                limit: 100
             );
         } catch (Exception $e) {
-            $error = $e->getMessage();
+            $error = 'Gagal mengambil data dari PostgreSQL Odoo: ' . $e->getMessage();
         }
 
         return view('purchase-orders.index', [
             'orders' => $orders,
             'error'  => $error,
             'status' => $status,
+            'user'   => $user,
         ]);
     }
 
     /**
-     * Endpoint API JSON (kalau butuh dikonsumsi frontend lain, bukan Blade).
+     * Endpoint API JSON untuk Purchase Orders via Direct PostgreSQL.
      */
     public function apiIndex(Request $request)
     {
         try {
-            $orders = $this->odoo->searchRead(
-                model: 'purchase.order',
-                domain: [],
-                fields: ['name', 'partner_id', 'date_order', 'amount_total', 'state'],
-                limit: 100,
-            );
+            $status = $request->query('status');
+            $orders = $this->odooPg->getPurchaseOrders(state: $status, limit: 100);
 
             return response()->json([
                 'success' => true,
+                'source'  => 'PostgreSQL Direct',
                 'data'    => $orders,
             ]);
         } catch (Exception $e) {

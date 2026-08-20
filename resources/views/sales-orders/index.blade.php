@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purchase Orders — Laravel × Odoo 19</title>
+    <title>Sales Orders — Laravel × Odoo 19</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -265,11 +265,11 @@
             color: #fff;
         }
 
-        .badge-draft    { background: #9ca3af; }
-        .badge-sent     { background: #3b82f6; }
-        .badge-purchase { background: #16a34a; }
-        .badge-done     { background: #0d9488; }
-        .badge-cancel   { background: #dc2626; }
+        .badge-draft   { background: #9ca3af; }
+        .badge-sent    { background: #3b82f6; }
+        .badge-sale    { background: #16a34a; }
+        .badge-done    { background: #0d9488; }
+        .badge-cancel  { background: #dc2626; }
 
         .empty-state {
             text-align: center;
@@ -305,11 +305,11 @@
                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 Dashboard
             </a>
-            <a href="{{ route('purchase-orders.index') }}" class="nav-link active">
+            <a href="{{ route('purchase-orders.index') }}" class="nav-link">
                 <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                 Purchase Orders
             </a>
-            <a href="{{ route('sales-orders.index') }}" class="nav-link">
+            <a href="{{ route('sales-orders.index') }}" class="nav-link active">
                 <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                 Sales Orders
             </a>
@@ -333,13 +333,13 @@
     {{-- MAIN --}}
     <main class="main">
         <header class="topbar">
-            <h1>Purchase Orders</h1>
+            <h1>Sales Orders</h1>
             <span class="topbar-date">{{ \Carbon\Carbon::now('Asia/Jakarta')->isoFormat('dddd, D MMMM Y') }}</span>
         </header>
 
         <div class="content">
 
-            <p class="content-subtitle">Data diambil langsung dari Database PostgreSQL Odoo 19</p>
+            <p class="content-subtitle">Data diambil langsung dari Database PostgreSQL Odoo 19 (Tabel: sale_order)</p>
 
             @if ($error)
                 <div class="alert alert-error">
@@ -348,44 +348,53 @@
             @endif
 
             <div class="filters">
-                <a href="{{ route('purchase-orders.index') }}" class="{{ !$status ? 'active' : '' }}">Semua</a>
-                <a href="{{ route('purchase-orders.index', ['status' => 'draft']) }}" class="{{ $status == 'draft' ? 'active' : '' }}">Draft (RFQ)</a>
-                <a href="{{ route('purchase-orders.index', ['status' => 'purchase']) }}" class="{{ $status == 'purchase' ? 'active' : '' }}">Confirmed</a>
-                <a href="{{ route('purchase-orders.index', ['status' => 'done']) }}" class="{{ $status == 'done' ? 'active' : '' }}">Done</a>
-                <a href="{{ route('purchase-orders.index', ['status' => 'cancel']) }}" class="{{ $status == 'cancel' ? 'active' : '' }}">Cancelled</a>
+                <a href="{{ route('sales-orders.index') }}" class="{{ !$status ? 'active' : '' }}">Semua</a>
+                <a href="{{ route('sales-orders.index', ['status' => 'draft']) }}" class="{{ $status == 'draft' ? 'active' : '' }}">Quotation</a>
+                <a href="{{ route('sales-orders.index', ['status' => 'sent']) }}" class="{{ $status == 'sent' ? 'active' : '' }}">Quotation Sent</a>
+                <a href="{{ route('sales-orders.index', ['status' => 'sale']) }}" class="{{ $status == 'sale' ? 'active' : '' }}">Sales Order</a>
+                <a href="{{ route('sales-orders.index', ['status' => 'done']) }}" class="{{ $status == 'done' ? 'active' : '' }}">Locked (Done)</a>
+                <a href="{{ route('sales-orders.index', ['status' => 'cancel']) }}" class="{{ $status == 'cancel' ? 'active' : '' }}">Cancelled</a>
             </div>
 
             @if (!$error)
                 <div class="card">
-                    <div class="card-head">Daftar Purchase Order</div>
+                    <div class="card-head">Daftar Sales Order</div>
                     <table>
                         <thead>
                             <tr>
-                                <th>No. PO</th>
-                                <th>Vendor</th>
+                                <th>No. SO</th>
+                                <th>Pelanggan (Customer)</th>
                                 <th>Tanggal Order</th>
                                 <th>Total</th>
                                 <th>Status</th>
-                                <th>Dibuat oleh</th>
+                                <th>Salesperson</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($orders as $order)
                                 <tr>
-                                    <td>{{ $order['name'] ?? '-' }}</td>
+                                    <td><strong>{{ $order['name'] ?? '-' }}</strong></td>
                                     <td>{{ $order['partner_id'][1] ?? '-' }}</td>
                                     <td>{{ $order['date_order'] ?? '-' }}</td>
                                     <td>Rp {{ number_format($order['amount_total'] ?? 0, 0, ',', '.') }}</td>
                                     <td>
                                         <span class="badge badge-{{ $order['state'] ?? 'draft' }}">
-                                            {{ ucfirst($order['state'] ?? '-') }}
+                                            @if(($order['state'] ?? '') == 'draft')
+                                                Quotation
+                                            @elseif(($order['state'] ?? '') == 'sent')
+                                                Quotation Sent
+                                            @elseif(($order['state'] ?? '') == 'sale')
+                                                Sales Order
+                                            @else
+                                                {{ ucfirst($order['state'] ?? '-') }}
+                                            @endif
                                         </span>
                                     </td>
                                     <td>{{ $order['user_id'][1] ?? '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="empty-state">Tidak ada data.</td>
+                                    <td colspan="6" class="empty-state">Tidak ada data Sales Order.</td>
                                 </tr>
                             @endforelse
                         </tbody>

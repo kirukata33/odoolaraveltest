@@ -13,7 +13,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Kalau guest coba akses route yang butuh login -> lempar ke /login
+        $middleware->redirectGuestsTo(fn () => route('login'));
+
+        // Kalau user sudah login coba akses route guest-only (mis. /login) -> lempar ke dashboard
+        // Ini yang tadinya menyebabkan redirect loop (default Laravel cari route 'dashboard'
+        // yang tidak ada di project ini, sehingga fallback ke '/' dan mengulang lagi ke '/login').
+        $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

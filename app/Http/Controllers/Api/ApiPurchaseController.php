@@ -4,29 +4,28 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiResponse;
-use App\Services\Odoo\OdooPurchaseService;
+use App\Services\OdooPgService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Validation\ValidationException;
 use Exception;
 
 /**
  * ApiPurchaseController
  *
- * Controller REST API untuk mengelola Purchase Order dari Odoo.
+ * Controller REST API untuk membaca Purchase Order langsung dari PostgreSQL Odoo 19.
  */
 class ApiPurchaseController extends Controller
 {
-    protected OdooPurchaseService $purchaseService;
+    protected OdooPgService $odooPg;
 
-    public function __construct(OdooPurchaseService $purchaseService)
+    public function __construct(OdooPgService $odooPg)
     {
-        $this->purchaseService = $purchaseService;
+        $this->odooPg = $odooPg;
     }
 
     /**
      * GET /api/purchases
-     * Mengambil daftar Purchase Order dari Odoo.
+     * Mengambil daftar Purchase Order dari PostgreSQL Odoo.
      */
     public function index(Request $request): JsonResponse
     {
@@ -35,18 +34,13 @@ class ApiPurchaseController extends Controller
             $offset = (int) $request->query('offset', 0);
             $status = $request->query('status');
 
-            $domain = [];
-            if ($status) {
-                $domain[] = ['state', '=', $status];
-            }
-
-            $purchases = $this->purchaseService->getPurchases(
-                domain: $domain,
+            $purchases = $this->odooPg->getPurchaseOrders(
+                state: $status,
                 limit: $limit,
                 offset: $offset
             );
 
-            return ApiResponse::success($purchases, 'Data Purchase Order berhasil diambil');
+            return ApiResponse::success($purchases, 'Data Purchase Order berhasil diambil via Direct PostgreSQL');
         } catch (Exception $e) {
             return ApiResponse::serverError('Gagal mengambil data Purchase Order: ' . $e->getMessage());
         }
@@ -54,80 +48,20 @@ class ApiPurchaseController extends Controller
 
     /**
      * GET /api/purchases/{id}
-     * Mengambil detail satu Purchase Order berdasarkan ID.
+     * Mengambil detail satu Purchase Order berdasarkan ID dari PostgreSQL.
      */
     public function show(int $id): JsonResponse
     {
         try {
-            $purchase = $this->purchaseService->getPurchaseById($id);
+            $purchase = $this->odooPg->getPurchaseOrderById($id);
 
             if (empty($purchase)) {
                 return ApiResponse::notFound("Purchase Order dengan ID {$id} tidak ditemukan");
             }
 
-            return ApiResponse::success($purchase, 'Detail Purchase Order berhasil diambil');
+            return ApiResponse::success($purchase, 'Detail Purchase Order berhasil diambil via Direct PostgreSQL');
         } catch (Exception $e) {
             return ApiResponse::serverError('Gagal mengambil detail Purchase Order: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * POST /api/purchases
-     * Membuat Purchase Order baru di Odoo.
-     */
-    public function store(Request $request): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'partner_id' => 'required|integer',
-            ]);
-
-            $newId = $this->purchaseService->createPurchase($validated);
-
-            return ApiResponse::created(['id' => $newId], 'Purchase Order berhasil dibuat');
-        } catch (ValidationException $e) {
-            return ApiResponse::validationError($e->errors());
-        } catch (Exception $e) {
-            return ApiResponse::serverError('Gagal membuat Purchase Order: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * PUT /api/purchases/{id}
-     * Perbarui Purchase Order di Odoo.
-     */
-    public function update(Request $request, int $id): JsonResponse
-    {
-        try {
-            $data = $request->all();
-            $updated = $this->purchaseService->updatePurchase($id, $data);
-
-            if (!$updated) {
-                return ApiResponse::error('Gagal memperbarui Purchase Order');
-            }
-
-            return ApiResponse::success(['id' => $id], 'Purchase Order berhasil diperbarui');
-        } catch (Exception $e) {
-            return ApiResponse::serverError('Gagal memperbarui Purchase Order: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * DELETE /api/purchases/{id}
-     * Hapus Purchase Order di Odoo.
-     */
-    public function destroy(int $id): JsonResponse
-    {
-        try {
-            $deleted = $this->purchaseService->deletePurchase($id);
-
-            if (!$deleted) {
-                return ApiResponse::error('Gagal menghapus Purchase Order');
-            }
-
-            return ApiResponse::success(['id' => $id], 'Purchase Order berhasil dihapus');
-        } catch (Exception $e) {
-            return ApiResponse::serverError('Gagal menghapus Purchase Order: ' . $e->getMessage());
         }
     }
 }

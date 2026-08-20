@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 
@@ -33,7 +34,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 });
 
 // ---------------------------------------------------------------
-// Odoo Integration - Purchase Orders (Auth required)
+// Odoo Integration - Purchase & Sales Orders (Auth required)
 // ---------------------------------------------------------------
 Route::middleware('auth')->group(function () {
     Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])
@@ -41,4 +42,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/api/purchase-orders', [PurchaseOrderController::class, 'apiIndex'])
         ->name('purchase-orders.api');
+
+    Route::get('/sales-orders', [SalesOrderController::class, 'index'])
+        ->name('sales-orders.index');
 });
+

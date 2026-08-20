@@ -99,6 +99,21 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        'odoo_pg' => [
+            'driver' => 'pgsql',
+            'url' => env('ODOO_DB_PG_URL'),
+            'host' => env('ODOO_DB_PG_HOST', '127.0.0.1'),
+            'port' => env('ODOO_DB_PG_PORT', '5432'),
+            'database' => env('ODOO_DB_PG_DATABASE', 'odoo_val'),
+            'username' => env('ODOO_DB_PG_USERNAME', 'openpg'),
+            'password' => env('ODOO_DB_PG_PASSWORD', 'openpgpwd'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

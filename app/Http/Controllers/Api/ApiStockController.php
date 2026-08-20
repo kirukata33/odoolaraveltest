@@ -4,49 +4,41 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiResponse;
-use App\Services\Odoo\OdooStockService;
+use App\Services\OdooPgService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Validation\ValidationException;
 use Exception;
 
 /**
  * ApiStockController
  *
- * Controller REST API untuk mengelola Inventory / Stock dari Odoo.
+ * Controller REST API untuk mengelola Data Pergerakan Stok dari PostgreSQL Odoo.
  */
 class ApiStockController extends Controller
 {
-    protected OdooStockService $stockService;
+    protected OdooPgService $odooPg;
 
-    public function __construct(OdooStockService $stockService)
+    public function __construct(OdooPgService $odooPg)
     {
-        $this->stockService = $stockService;
+        $this->odooPg = $odooPg;
     }
 
     /**
      * GET /api/stocks
-     * Mengambil daftar kuantitas stok dari Odoo.
+     * Mengambil data stok/pergerakan barang dari PostgreSQL Odoo.
      */
     public function index(Request $request): JsonResponse
     {
         try {
             $limit  = (int) $request->query('limit', 80);
             $offset = (int) $request->query('offset', 0);
-            $productId = $request->query('product_id');
 
-            $domain = [];
-            if ($productId) {
-                $domain[] = ['product_id', '=', (int) $productId];
-            }
-
-            $stocks = $this->stockService->getStocks(
-                domain: $domain,
+            $stocks = $this->odooPg->getStocks(
                 limit: $limit,
                 offset: $offset
             );
 
-            return ApiResponse::success($stocks, 'Data stok inventory berhasil diambil');
+            return ApiResponse::success($stocks, 'Data pergerakan stok berhasil diambil via Direct PostgreSQL');
         } catch (Exception $e) {
             return ApiResponse::serverError('Gagal mengambil data stok: ' . $e->getMessage());
         }
@@ -54,87 +46,22 @@ class ApiStockController extends Controller
 
     /**
      * GET /api/stocks/{id}
-     * Mengambil detail satu entri stok berdasarkan ID.
+     * Mengambil detail satu pergerakan stok berdasarkan ID.
      */
     public function show(int $id): JsonResponse
     {
         try {
-            $stock = $this->stockService->getStockById($id);
+            $stock = $this->odooPg->table('stock_picking')
+                ->where('id', $id)
+                ->first();
 
-            if (empty($stock)) {
-                return ApiResponse::notFound("Entri stok dengan ID {$id} tidak ditemukan");
+            if (!$stock) {
+                return ApiResponse::notFound("Data stok dengan ID {$id} tidak ditemukan");
             }
 
-            return ApiResponse::success($stock, 'Detail entri stok berhasil diambil');
+            return ApiResponse::success($stock, 'Detail data stok berhasil diambil via Direct PostgreSQL');
         } catch (Exception $e) {
-            return ApiResponse::serverError('Gagal mengambil detail stok: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * POST /api/stocks
-     * Membuat entri stok baru di Odoo.
-     */
-    public function store(Request $request): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'product_id'  => 'required|integer',
-                'location_id' => 'required|integer',
-                'quantity'    => 'required|numeric',
-            ]);
-
-            $newId = $this->stockService->createStock($validated);
-
-            return ApiResponse::created(['id' => $newId], 'Entri stok berhasil dibuat');
-        } catch (ValidationException $e) {
-            return ApiResponse::validationError($e->errors());
-        } catch (Exception $e) {
-            return ApiResponse::serverError('Gagal membuat entri stok: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * PUT /api/stocks/{id}
-     * Perbarui entri stok di Odoo.
-     */
-    public function update(Request $request, int $id): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'quantity' => 'sometimes|required|numeric',
-            ]);
-
-            $updated = $this->stockService->updateStock($id, $validated);
-
-            if (!$updated) {
-                return ApiResponse::error('Gagal memperbarui entri stok');
-            }
-
-            return ApiResponse::success(['id' => $id], 'Entri stok berhasil diperbarui');
-        } catch (ValidationException $e) {
-            return ApiResponse::validationError($e->errors());
-        } catch (Exception $e) {
-            return ApiResponse::serverError('Gagal memperbarui entri stok: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * DELETE /api/stocks/{id}
-     * Hapus entri stok di Odoo.
-     */
-    public function destroy(int $id): JsonResponse
-    {
-        try {
-            $deleted = $this->stockService->deleteStock($id);
-
-            if (!$deleted) {
-                return ApiResponse::error('Gagal menghapus entri stok');
-            }
-
-            return ApiResponse::success(['id' => $id], 'Entri stok berhasil dihapus');
-        } catch (Exception $e) {
-            return ApiResponse::serverError('Gagal menghapus entri stok: ' . $e->getMessage());
+            return ApiResponse::serverError('Gagal mengambil detail data stok: ' . $e->getMessage());
         }
     }
 }
