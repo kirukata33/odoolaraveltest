@@ -40,10 +40,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])
         ->name('purchase-orders.index');
 
+    Route::get('/purchase-orders/{id}', [PurchaseOrderController::class, 'show'])
+        ->name('purchase-orders.show');
+
     Route::get('/api/purchase-orders', [PurchaseOrderController::class, 'apiIndex'])
         ->name('purchase-orders.api');
 
     Route::get('/sales-orders', [SalesOrderController::class, 'index'])
         ->name('sales-orders.index');
+
+    Route::get('/sales-orders/{id}', [SalesOrderController::class, 'show'])
+        ->name('sales-orders.show');
 });
 

@@ -66,7 +66,7 @@ class OdooPgService
     }
 
     /**
-     * Mengambil detail Purchase Order berdasarkan ID beserta order lines.
+     * Mengambil detail Purchase Order berdasarkan ID beserta order lines dan data Vendor.
      */
     public function getPurchaseOrderById(int $id): ?array
     {
@@ -83,6 +83,10 @@ class OdooPgService
                 'po.state',
                 'po.partner_id',
                 'partner.name as partner_name',
+                'partner.email as partner_email',
+                'partner.phone as partner_phone',
+                'partner.street as partner_street',
+                'partner.city as partner_city',
             ])
             ->where('po.id', $id)
             ->first();
@@ -100,6 +104,7 @@ class OdooPgService
                 'pol.product_qty',
                 'pol.price_unit',
                 'pol.price_subtotal',
+                'pol.price_total',
                 'pt.name as product_name',
             ])
             ->where('pol.order_id', $id)
@@ -109,12 +114,26 @@ class OdooPgService
             'id' => $po->id,
             'name' => $po->name,
             'partner_id' => [$po->partner_id, $po->partner_name ?? 'N/A'],
+            'partner_email' => $po->partner_email ?? '-',
+            'partner_phone' => $po->partner_phone ?? '-',
+            'partner_street' => $po->partner_street ?? '-',
+            'partner_city' => $po->partner_city ?? '-',
             'date_order' => $po->date_order,
+            'date_approve' => $po->date_approve,
             'amount_untaxed' => (float) $po->amount_untaxed,
             'amount_tax' => (float) $po->amount_tax,
             'amount_total' => (float) $po->amount_total,
             'state' => $po->state,
-            'lines' => $lines->toArray(),
+            'lines' => $lines->map(function ($line) {
+                return [
+                    'id' => $line->id,
+                    'product_name' => $line->product_name ?? $line->description ?? 'Item',
+                    'description' => $line->description,
+                    'product_qty' => (float) $line->product_qty,
+                    'price_unit' => (float) $line->price_unit,
+                    'price_subtotal' => (float) ($line->price_subtotal ?? ($line->product_qty * $line->price_unit)),
+                ];
+            })->toArray(),
         ];
     }
 
@@ -158,6 +177,75 @@ class OdooPgService
                 'state' => $so->state,
             ];
         })->toArray();
+    }
+
+    /**
+     * Mengambil detail Sales Order berdasarkan ID beserta order lines dan data Customer.
+     */
+    public function getSalesOrderById(int $id): ?array
+    {
+        $so = $this->table('sale_order as so')
+            ->leftJoin('res_partner as partner', 'so.partner_id', '=', 'partner.id')
+            ->select([
+                'so.id',
+                'so.name',
+                'so.date_order',
+                'so.amount_untaxed',
+                'so.amount_tax',
+                'so.amount_total',
+                'so.state',
+                'so.partner_id',
+                'partner.name as partner_name',
+                'partner.email as partner_email',
+                'partner.phone as partner_phone',
+                'partner.street as partner_street',
+                'partner.city as partner_city',
+            ])
+            ->where('so.id', $id)
+            ->first();
+
+        if (!$so) {
+            return null;
+        }
+
+        $lines = $this->table('sale_order_line as sol')
+            ->leftJoin('product_product as pp', 'sol.product_id', '=', 'pp.id')
+            ->leftJoin('product_template as pt', 'pp.product_tmpl_id', '=', 'pt.id')
+            ->select([
+                'sol.id',
+                'sol.name as description',
+                'sol.product_uom_qty as product_qty',
+                'sol.price_unit',
+                'sol.price_subtotal',
+                'pt.name as product_name',
+            ])
+            ->where('sol.order_id', $id)
+            ->get();
+
+        return [
+            'id' => $so->id,
+            'name' => $so->name,
+            'partner_id' => [$so->partner_id, $so->partner_name ?? 'N/A'],
+            'partner_email' => $so->partner_email ?? '-',
+            'partner_phone' => $so->partner_phone ?? '-',
+            'partner_street' => $so->partner_street ?? '-',
+            'partner_city' => $so->partner_city ?? '-',
+            'date_order' => $so->date_order,
+            'amount_untaxed' => (float) $so->amount_untaxed,
+            'amount_tax' => (float) $so->amount_tax,
+            'amount_total' => (float) $so->amount_total,
+            'state' => $so->state,
+            'lines' => $lines->map(function ($line) {
+                return [
+                    'id' => $line->id,
+                    'product_name' => $line->product_name ?? $line->description ?? 'Item',
+                    'description' => $line->description,
+                    'product_qty' => (float) $line->product_qty,
+                    'price_unit' => (float) $line->price_unit,
+                    'price_subtotal' => (float) ($line->price_subtotal ?? ($line->product_qty * $line->price_unit)),
+                ];
+            })->toArray(),
+        ];
     }
 
     /**

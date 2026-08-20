@@ -3,7 +3,7 @@
 Project **`laravelxodoo19`** adalah aplikasi **Laravel** yang dirancang sebagai **Bridge / Gateway Integration** berkecepatan tinggi antara Laravel dan ERP **Odoo 19** menggunakan **Direct PostgreSQL Database Connection** (`odoo_pg`) yang diakses via pgAdmin 4.
 
 Aplikasi ini memiliki 2 pilar utama:
-1. **Web Dashboard (MVC)**: Antarmuka berbasis Blade UI (HTML/CSS) untuk menampilkan data Odoo (Purchase Orders, Sales Orders, Admin Dashboard) langsung dari database PostgreSQL.
+1. **Web Dashboard (MVC)**: Antarmuka berbasis Blade UI (HTML/CSS) untuk menampilkan data Odoo (Purchase Orders, Sales Orders, Admin Dashboard) beserta **Halaman Detail Rincian Item Barang** langsung dari database PostgreSQL.
 2. **REST API Suite Layer**: API perantara bagi aplikasi eksternal (Mobile App, Next.js, Frontend Vue/React) untuk mengambil data dari database PostgreSQL Odoo 19.
 
 ---
@@ -31,8 +31,8 @@ laravelxodoo19/
 │   │   ├── Controllers/
 │   │   │   ├── AdminController.php          # Controller untuk Dashboard Admin
 │   │   │   ├── AuthController.php           # Controller untuk Web Auth (Login/Logout)
-│   │   │   ├── PurchaseOrderController.php  # Controller Web Purchase Orders (PostgreSQL Direct)
-│   │   │   ├── SalesOrderController.php     # Controller Web Sales Orders (PostgreSQL Direct)
+│   │   │   ├── PurchaseOrderController.php  # Controller Web Purchase Orders (Index & Show)
+│   │   │   ├── SalesOrderController.php     # Controller Web Sales Orders (Index & Show)
 │   │   │   └── Api/
 │   │   │       ├── ApiAuthController.php    # REST API Auth (Login/Logout/Me)
 │   │   │       ├── ApiCustomerController.php# REST API Customer (res_partner)
@@ -54,9 +54,11 @@ laravelxodoo19/
 │       ├── auth/
 │       │   └── login.blade.php              # Login View
 │       ├── purchase-orders/
-│       │   └── index.blade.php              # UI Daftar & Filter Purchase Orders (PostgreSQL)
+│       │   ├── index.blade.php              # UI Daftar & Filter Purchase Orders
+│       │   └── show.blade.php               # UI Detail Purchase Order & Rincian Barang
 │       └── sales-orders/
-│           └── index.blade.php              # UI Daftar & Filter Sales Orders (PostgreSQL)
+│           ├── index.blade.php              # UI Daftar & Filter Sales Orders
+│           └── show.blade.php               # UI Detail Sales Order & Rincian Barang
 ├── routes/
 │   ├── api.php                              # Endpoint REST API Suite Odoo Integration
 │   └── web.php                              # Web Dashboard Routes (Blade UI)
@@ -70,14 +72,16 @@ laravelxodoo19/
 ## 🛠️ Detail Komponen Utama
 
 ### 1. Layer Service (`app/Services/`)
-*   **`OdooPgService.php`**: Engine Query utama ke PostgreSQL Odoo 19 via `DB::connection('odoo_pg')`. Menggunakan Query Builder Laravel dengan teknik `JOIN` tabel relational (misal: `purchase_order` JOIN `res_partner`) untuk membaca data berkecepatan tinggi tanpa overhead HTTP.
+*   **`OdooPgService.php`**: Engine Query utama ke PostgreSQL Odoo 19 via `DB::connection('odoo_pg')`.
+    *   `getPurchaseOrders()` & `getPurchaseOrderById()`: Mengambil header PO & item baris (`purchase_order_line`).
+    *   `getSalesOrders()` & `getSalesOrderById()`: Mengambil header SO & item baris (`sale_order_line`).
 
 ### 2. Layer Controller (`app/Http/Controllers/`)
-*   **Web Controllers**: Menangani tampilan berbasis Blade untuk pengguna akhir yang mengakses via browser web.
-*   **API Controllers (`Api/`)**: Menangani pertukaran data berbasis JSON untuk konsumsi API pihak ketiga / frontend terpisah.
+*   **Web Controllers**: Menangani tampilan laporan & detail berbasis Blade.
+*   **API Controllers (`Api/`)**: Menangani pertukaran data berbasis JSON.
 
 ### 3. Layer Views (`resources/views/`)
-Menggunakan Blade Template Engine dengan styling modern & responsive untuk menampilkan data dari database PostgreSQL Odoo 19.
+Menggunakan Blade Template Engine dengan styling modern & responsive untuk menampilkan data transaksi dan rincian produk dari database PostgreSQL Odoo 19.
 
 ---
 
@@ -90,8 +94,10 @@ Menggunakan Blade Template Engine dengan styling modern & responsive untuk menam
 | POST | `/login` | `AuthController@login` | Proses Login | Database Local |
 | POST | `/logout` | `AuthController@logout` | Proses Logout | Database Local |
 | GET | `/admin/dashboard` | `AdminController@dashboard` | Dashboard Admin | Database Local |
-| GET | `/purchase-orders` | `PurchaseOrderController@index` | Daftar Purchase Order Odoo | PostgreSQL `purchase_order` |
-| GET | `/sales-orders` | `SalesOrderController@index` | Daftar Sales Order Odoo | PostgreSQL `sale_order` |
+| GET | `/purchase-orders` | `PurchaseOrderController@index` | Daftar Purchase Order | PostgreSQL `purchase_order` |
+| GET | `/purchase-orders/{id}` | `PurchaseOrderController@show` | Detail PO & Item Barang | PostgreSQL `purchase_order_line` |
+| GET | `/sales-orders` | `SalesOrderController@index` | Daftar Sales Order | PostgreSQL `sale_order` |
+| GET | `/sales-orders/{id}` | `SalesOrderController@show` | Detail SO & Item Barang | PostgreSQL `sale_order_line` |
 
 ### REST API Routes (`routes/api.php`)
 | Method | Endpoint | Description | Tabel PostgreSQL Odoo |

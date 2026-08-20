@@ -294,7 +294,7 @@
                 <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             </div>
             <div class="brand-label">
-                <strong>Laravel × Odoo 19</strong>
+                <strong>Inventori</strong>
                 <span>Admin Panel</span>
             </div>
         </a>
@@ -372,7 +372,11 @@
                         <tbody>
                             @forelse ($orders as $order)
                                 <tr>
-                                    <td>{{ $order['name'] ?? '-' }}</td>
+                                    <td>
+                                        <a href="{{ route('purchase-orders.show', $order['id']) }}" style="font-weight: 700; color: #1d4ed8; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                                            {{ $order['name'] ?? '-' }}
+                                        </a>
+                                    </td>
                                     <td>{{ $order['partner_id'][1] ?? '-' }}</td>
                                     <td>{{ $order['date_order'] ?? '-' }}</td>
                                     <td>Rp {{ number_format($order['amount_total'] ?? 0, 0, ',', '.') }}</td>

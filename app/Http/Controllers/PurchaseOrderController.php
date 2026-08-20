@@ -46,6 +46,32 @@ class PurchaseOrderController extends Controller
     }
 
     /**
+     * Halaman detail Purchase Order beserta rincian order lines dari PostgreSQL.
+     */
+    public function show(int $id)
+    {
+        $error = null;
+        $order = null;
+        $user = Auth::user();
+
+        try {
+            $order = $this->odooPg->getPurchaseOrderById($id);
+
+            if (!$order) {
+                abort(404, "Purchase Order dengan ID {$id} tidak ditemukan.");
+            }
+        } catch (Exception $e) {
+            $error = 'Gagal mengambil detail Purchase Order: ' . $e->getMessage();
+        }
+
+        return view('purchase-orders.show', [
+            'order' => $order,
+            'error' => $error,
+            'user'  => $user,
+        ]);
+    }
+
+    /**
      * Endpoint API JSON untuk Purchase Orders via Direct PostgreSQL.
      */
     public function apiIndex(Request $request)

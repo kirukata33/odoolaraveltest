@@ -44,4 +44,30 @@ class SalesOrderController extends Controller
             'user'   => $user,
         ]);
     }
+
+    /**
+     * Halaman detail Sales Order beserta rincian order lines dari PostgreSQL.
+     */
+    public function show(int $id)
+    {
+        $error = null;
+        $order = null;
+        $user = Auth::user();
+
+        try {
+            $order = $this->odooPg->getSalesOrderById($id);
+
+            if (!$order) {
+                abort(404, "Sales Order dengan ID {$id} tidak ditemukan.");
+            }
+        } catch (Exception $e) {
+            $error = 'Gagal mengambil detail Sales Order: ' . $e->getMessage();
+        }
+
+        return view('sales-orders.show', [
+            'order' => $order,
+            'error' => $error,
+            'user'  => $user,
+        ]);
+    }
 }
