@@ -125,8 +125,8 @@ Seluruh tampilan menggunakan **Tailwind CSS v4** yang terkompilasi via Vite (`re
 ODOO_DB_PG_CONNECTION=pgsql
 ODOO_DB_PG_HOST=127.0.0.1
 ODOO_DB_PG_PORT=5432
-ODOO_DB_PG_DATABASE=odoo_val
-ODOO_DB_PG_USERNAME=openpg
-ODOO_DB_PG_PASSWORD=openpgpwd
+ODOO_DB_PG_DATABASE=.....
+ODOO_DB_PG_USERNAME=.....
+ODOO_DB_PG_PASSWORD=....
 ```
 

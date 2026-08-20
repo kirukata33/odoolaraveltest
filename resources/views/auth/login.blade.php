@@ -146,7 +146,7 @@
 
     {{-- Page footer --}}
     <footer class="page-footer">
-        &copy; {{ date('Y') }} Laravel × Odoo 19. Seluruh hak cipta dilindungi.
+        &copy; {{ date('Y') }} Inventori. Seluruh hak cipta dilindungi.
     </footer>
 
     <script>
