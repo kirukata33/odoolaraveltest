@@ -3,249 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin — Laravel × Odoo 19</title>
+    <title>Dashboard Admin — Inventori</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --primary: #1d4ed8;
-            --primary-hover: #1e40af;
-            --bg: #f3f4f6;
-            --white: #ffffff;
-            --border: #e5e7eb;
-            --text-dark: #111827;
-            --text-mid: #374151;
-            --text-muted: #6b7280;
-            --text-light: #9ca3af;
-            --sidebar-w: 220px;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text-dark);
-            min-height: 100vh;
-            display: flex;
-            font-size: 0.9375rem;
-        }
-
-        /* ── SIDEBAR ── */
-        .sidebar {
-            width: var(--sidebar-w);
-            background: var(--white);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0; left: 0; bottom: 0;
-        }
-
-        .sidebar-brand {
-            padding: 20px 20px 18px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: var(--text-dark);
-        }
-
-        .brand-box {
-            width: 32px; height: 32px;
-            background: var(--primary);
-            border-radius: 6px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .brand-box svg { width: 16px; height: 16px; stroke: white; fill: none; stroke-width: 2; }
-
-        .brand-label strong { display: block; font-size: 0.875rem; font-weight: 700; line-height: 1.2; }
-        .brand-label span { font-size: 0.75rem; color: var(--text-muted); }
-
-        .sidebar-nav { flex: 1; padding: 14px 12px; }
-
-        .nav-section-label {
-            font-size: 0.6875rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-light);
-            padding: 0 8px;
-            margin: 14px 0 6px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-mid);
-            text-decoration: none;
-            transition: background 0.15s, color 0.15s;
-            margin-bottom: 2px;
-        }
-
-        .nav-link:hover { background: var(--bg); color: var(--text-dark); }
-        .nav-link.active { background: #eff6ff; color: var(--primary); font-weight: 600; }
-        .nav-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
-
-        .sidebar-footer {
-            padding: 14px 12px;
-            border-top: 1px solid var(--border);
-        }
-
-        .user-card {
-            padding: 10px;
-            border-radius: 6px;
-            background: var(--bg);
-            margin-bottom: 8px;
-        }
-
-        .user-card-name {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .user-card-role {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 1px;
-        }
-
-        .btn-logout {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: var(--white);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: var(--text-mid);
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.15s, border-color 0.15s;
-        }
-
-        .btn-logout:hover { background: var(--bg); border-color: #d1d5db; }
-        .btn-logout svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
-
-        /* ── MAIN ── */
-        .main {
-            margin-left: var(--sidebar-w);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* ── TOPBAR ── */
-        .topbar {
-            background: var(--white);
-            border-bottom: 1px solid var(--border);
-            padding: 14px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky; top: 0; z-index: 10;
-        }
-
-        .topbar h1 { font-size: 1rem; font-weight: 700; color: var(--text-dark); }
-        .topbar-date { font-size: 0.8125rem; color: var(--text-muted); }
-
-        /* ── CONTENT ── */
-        .content { padding: 28px; flex: 1; }
-
-        .alert {
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            margin-bottom: 24px;
-            border: 1px solid #bbf7d0;
-            background: #f0fdf4;
-            color: #16a34a;
-        }
-
-        /* ── SECTION TITLE ── */
-        .section-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-        }
-
-        /* ── TABLES ── */
-        .card {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 24px;
-        }
-
-        .card-head {
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table th, table td {
-            padding: 10px 20px;
-            font-size: 0.875rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        table tr:last-child td { border-bottom: none; }
-
-        table th {
-            background: #f9fafb;
-            font-weight: 600;
-            color: var(--text-muted);
-            font-size: 0.8125rem;
-            width: 40%;
-        }
-
-        table td { color: var(--text-dark); }
-
-        /* ── TWO COLS ── */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 760px) {
-            .grid-2 { grid-template-columns: 1fr; }
-            .sidebar { display: none; }
-            .main { margin-left: 0; }
-            .content { padding: 20px 16px; }
-        }
-    </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
 
@@ -256,13 +18,13 @@
                 <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             </div>
             <div class="brand-label">
-                <strong>Inventori </strong>
+                <strong>Inventori</strong>
                 <span>Admin Panel</span>
             </div>
         </a>
 
         <nav class="sidebar-nav">
-            <div class="nav-section-label">Menu</div>
+            <div class="nav-section-label">Menu Utama</div>
             <a href="{{ route('admin.dashboard') }}" class="nav-link active">
                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 Dashboard
@@ -292,7 +54,7 @@
         </div>
     </aside>
 
-    {{-- MAIN --}}
+    {{-- MAIN CONTENT --}}
     <main class="main">
         <header class="topbar">
             <h1>Dashboard</h1>
@@ -302,39 +64,190 @@
         <div class="content">
 
             @if (session('success'))
-                <div class="alert">✅ {{ session('success') }}</div>
+                <div class="alert" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+                     {{ session('success') }}
+                </div>
             @endif
 
-            <div class="grid-2">
+            {{-- WELCOME HERO --}}
+            <div style="background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px;">
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">
+                    Selamat Datang kembali, {{ $user->name }}!
+                </h2>
+                <p style="font-size: 0.875rem; color: var(--text-muted);">
+                    Berikut adalah statistik ringkasan data inventori dan pesanan transaksi Anda hari ini.
+                </p>
+            </div>
 
-                {{-- Profil Pengguna --}}
-                <div>
-                    <div class="section-title">Profil Pengguna</div>
-                    <div class="card">
-                        <div class="card-head">Informasi Akun</div>
-                        <table>
-                            <tr><th>Nama</th><td>{{ $user->name }}</td></tr>
-                            <tr><th>Email</th><td>{{ $user->email }}</td></tr>
-                            <tr><th>Bergabung</th><td>{{ $user->created_at->format('d M Y') }}</td></tr>
-                        </table>
+            {{-- STATS GRID --}}
+            <div class="stats-grid">
+                {{-- Card Purchase Orders --}}
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-blue">
+                        <svg viewBox="0 0 24 24" stroke="currentColor"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Purchase Orders</div>
+                        <div class="stat-value">{{ $stats['po_count'] ?? 0 }}</div>
+                        <div class="stat-subtext">Total: Rp {{ number_format($stats['po_total_sum'] ?? 0, 0, ',', '.') }}</div>
                     </div>
                 </div>
 
-                {{-- Konfigurasi Odoo --}}
-                <div>
-                    <div class="section-title">Konfigurasi Odoo</div>
-                    <div class="card">
-                        <div class="card-head">Pengaturan API</div>
-                        <table>
-                            <tr><th>URL</th><td>{{ env('ODOO_URL') }}</td></tr>
-                            <tr><th>Database</th><td>{{ env('ODOO_DB') }}</td></tr>
-                            <tr><th>Username</th><td>{{ env('ODOO_USERNAME') }}</td></tr>
-                            <tr><th>Timeout</th><td>{{ env('ODOO_TIMEOUT') }} detik</td></tr>
-                        </table>
+                {{-- Card Sales Orders --}}
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-green">
+                        <svg viewBox="0 0 24 24" stroke="currentColor"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                     </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Sales Orders</div>
+                        <div class="stat-value">{{ $stats['so_count'] ?? 0 }}</div>
+                        <div class="stat-subtext">Total: Rp {{ number_format($stats['so_total_sum'] ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                </div>
+
+                {{-- Card Products --}}
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-purple">
+                        <svg viewBox="0 0 24 24" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Produk Aktif</div>
+                        <div class="stat-value">{{ $stats['product_count'] ?? 0 }}</div>
+                        <div class="stat-subtext">Item Terdaftar</div>
+                    </div>
+                </div>
+
+                {{-- Card Customers --}}
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-amber">
+                        <svg viewBox="0 0 24 24" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Pelanggan / Partner</div>
+                        <div class="stat-value">{{ $stats['customer_count'] ?? 0 }}</div>
+                        <div class="stat-subtext">Mitra Bisnis</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- RECENT TRANSACTIONS GRID --}}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px;">
+
+                {{-- PO TERBARU --}}
+                <div class="card">
+                    <div class="card-head" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span> Purchase Orders Terbaru</span>
+                        <a href="{{ route('purchase-orders.index') }}" style="font-size: 0.75rem; color: var(--primary); text-decoration: none; font-weight: 500;">
+                            Lihat Semua →
+                        </a>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No. PO</th>
+                                <th>Vendor</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($stats['recent_pos'] ?? [] as $po)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('purchase-orders.show', $po['id']) }}" style="font-weight: 600; color: var(--primary); text-decoration: none;">
+                                            {{ $po['name'] }}
+                                        </a>
+                                    </td>
+                                    <td>{{ $po['partner_id'][1] ?? '-' }}</td>
+                                    <td>Rp {{ number_format($po['amount_total'], 0, ',', '.') }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ $po['state'] }}">
+                                            {{ ucfirst($po['state']) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                                        Belum ada data Purchase Order.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- SO TERBARU --}}
+                <div class="card">
+                    <div class="card-head" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span> Sales Orders Terbaru</span>
+                        <a href="{{ route('sales-orders.index') }}" style="font-size: 0.75rem; color: var(--primary); text-decoration: none; font-weight: 500;">
+                            Lihat Semua →
+                        </a>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No. SO</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($stats['recent_sos'] ?? [] as $so)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('sales-orders.show', $so['id']) }}" style="font-weight: 600; color: var(--primary); text-decoration: none;">
+                                            {{ $so['name'] }}
+                                        </a>
+                                    </td>
+                                    <td>{{ $so['partner_id'][1] ?? '-' }}</td>
+                                    <td>Rp {{ number_format($so['amount_total'], 0, ',', '.') }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ $so['state'] }}">
+                                            @if(($so['state'] ?? '') == 'draft')
+                                                Quotation
+                                            @elseif(($so['state'] ?? '') == 'sale')
+                                                Sales Order
+                                            @else
+                                                {{ ucfirst($so['state']) }}
+                                            @endif
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                                        Belum ada data Sales Order.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
 
             </div>
+
+            {{-- INFORMASI AKUN (MINIMALIS) --}}
+            <div class="card">
+                <div class="card-head"> Profil Akun Pengguna</div>
+                <div style="padding: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 44px; height: 44px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.125rem;">
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 1rem; color: var(--text-dark);">{{ $user->name }}</div>
+                            <div style="font-size: 0.8125rem; color: var(--text-muted);">{{ $user->email }}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8125rem; color: var(--text-muted);">
+                        Terdaftar sejak: <strong>{{ $user->created_at ? $user->created_at->format('d M Y') : '-' }}</strong>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 

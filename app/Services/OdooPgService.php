@@ -308,10 +308,56 @@ class OdooPgService
                 'sp.state',
                 'partner.name as partner_name',
             ])
-            ->orderBy('sp.id', 'desc')
-            ->limit($limit)
-            ->offset($offset)
             ->get()
             ->toArray();
+    }
+
+    /**
+     * Mengambil statistik ringkas untuk Dashboard Admin.
+     */
+    public function getDashboardStats(): array
+    {
+        try {
+            $poCount = $this->table('purchase_order')->count();
+            $poTotalSum = (float) $this->table('purchase_order')->sum('amount_total');
+            $poDoneCount = $this->table('purchase_order')->whereIn('state', ['purchase', 'done'])->count();
+
+            $soCount = $this->table('sale_order')->count();
+            $soTotalSum = (float) $this->table('sale_order')->sum('amount_total');
+            $soSaleCount = $this->table('sale_order')->whereIn('state', ['sale', 'done'])->count();
+
+            $customerCount = $this->table('res_partner')->where('active', true)->count();
+            $productCount = $this->table('product_template')->where('active', true)->count();
+
+            $recentPOs = $this->getPurchaseOrders(null, 5);
+            $recentSOs = $this->getSalesOrders(null, 5);
+
+            return [
+                'po_count' => $poCount,
+                'po_total_sum' => $poTotalSum,
+                'po_done_count' => $poDoneCount,
+                'so_count' => $soCount,
+                'so_total_sum' => $soTotalSum,
+                'so_sale_count' => $soSaleCount,
+                'customer_count' => $customerCount,
+                'product_count' => $productCount,
+                'recent_pos' => $recentPOs,
+                'recent_sos' => $recentSOs,
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'po_count' => 0,
+                'po_total_sum' => 0,
+                'po_done_count' => 0,
+                'so_count' => 0,
+                'so_total_sum' => 0,
+                'so_sale_count' => 0,
+                'customer_count' => 0,
+                'product_count' => 0,
+                'recent_pos' => [],
+                'recent_sos' => [],
+                'error' => $e->getMessage(),
+            ];
+        }
     }
 }
